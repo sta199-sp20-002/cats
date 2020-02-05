@@ -1,0 +1,177 @@
+---
+title: "Cat Lovers"
+date: "02.05.20"
+output:
+  html_document: default 
+  pdf_document: default
+---
+
+```{r packages, echo=FALSE, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(knitr)
+library(DT)
+```
+
+
+```{r load-data, message=FALSE}
+cat_lovers <- read_csv("data/cat-lovers.csv")
+```
+
+## Why isn't this working?
+
+```{r}
+cat_lovers %>%
+  summarise(mean_cats = mean(number_of_cats))
+```
+
+## Why is this still not working?
+
+```{r}
+cat_lovers %>%
+  summarise(mean_cats = mean(number_of_cats, na.rm = TRUE))
+```
+
+## Let's look at the data...
+
+```{r}
+glimpse(cat_lovers)
+```
+
+## Let's take another look
+
+```{r}
+cat_lovers %>%
+  count(number_of_cats)
+```
+
+## Fix data entry errors
+
+```{r}
+cat_lovers %>%
+  mutate(number_of_cats = case_when(
+    name == "Ginger Clark" ~ 2,
+    name == "Doug Bass"    ~ 3,
+    TRUE                   ~ as.numeric(number_of_cats)
+    )) %>%
+  summarise(mean_cats = mean(number_of_cats))
+```
+
+## Now that we know what we're doing...
+
+```{r}
+cat_lovers <- cat_lovers %>%
+  mutate(
+    number_of_cats = case_when(
+      name == "Ginger Clark" ~ "2",
+      name == "Doug Bass"    ~ "3",
+      TRUE                   ~ number_of_cats
+      ),
+    number_of_cats = as.numeric(number_of_cats)
+    )
+```
+
+## Subsetting vectors
+
+
+```{r}
+x <- c(8, 4, 7,-1, 0, 100)
+```
+
+```{r}
+x[1]
+```
+
+```{r}
+x[c(1, 4)]
+```
+
+```{r}
+x[c(TRUE, FALSE)]
+```
+
+## Creating data frames
+
+```{r}
+df <- tibble(x = 1:3, y = c("a", "b", "c"))
+class(df)
+glimpse(df)
+```
+
+## Features of data frames
+
+```{r}
+attributes(df)
+class(df$x)
+class(df$y)
+```
+
+## Working with tibbles in pipelines
+
+```{r}
+mean_cats <- cat_lovers %>%
+  summarise(mean_cats = mean(number_of_cats))
+
+cat_lovers %>%
+  filter(number_of_cats < mean_cats) %>%
+  nrow()
+```
+
+## A result of a pipeline is almost always a tibble
+
+```{r}
+mean_cats
+class(mean_cats)
+```
+
+## `pull()` can be great
+
+```{r}
+mean_cats <- cat_lovers %>%
+  summarise(mean_cats = mean(number_of_cats)) %>%
+  pull()
+
+cat_lovers %>%
+  filter(number_of_cats < mean_cats) %>%
+  nrow()
+```
+
+```{r}
+mean_cats
+class(mean_cats)
+```
+
+## Factors
+
+```{r}
+(x = factor(c("BS", "MS", "PhD", "MS")))
+```
+
+```{r}
+glimpse(x)
+```
+
+```{r}
+typeof(x)
+```
+
+## Read data in as character strings
+
+```{r}
+glimpse(cat_lovers)
+```
+
+## But coerce when plotting
+
+```{r fig.height=6}
+ggplot(cat_lovers, mapping = aes(x = handedness)) +
+  geom_bar()
+```
+
+## Use `forcats` to manipulate factors
+
+```{r fig.height=5}
+cat_lovers %>%
+  mutate(handedness = fct_relevel(handedness, "right", "left", "ambidextrous")) %>% #<<
+  ggplot(mapping = aes(x = handedness)) +
+  geom_bar()
+```
